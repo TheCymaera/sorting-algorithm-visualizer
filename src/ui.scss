@@ -3,6 +3,14 @@ app-container {
 	grid-template: "m s n" 1fr / 1fr 300px min-content;
 }
 
+@media (max-aspect-ratio: 1/1) {
+	app-container {
+		grid-template: 
+		"m n" 1fr 
+		"s n" 1fr / 1fr min-content;
+	}
+}
+
 .app-main {
 	grid-area: m;
 }
@@ -11,7 +19,6 @@ app-container {
 	grid-area: s;
 	overflow: auto;
 }
-
 
 .app-algorithms-sidebar,
 .app-data-sidebar {
