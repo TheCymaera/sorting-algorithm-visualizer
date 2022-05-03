@@ -2,9 +2,9 @@ import { CustomEmitter } from "open-utilities/async";
 import { Memory, MemoryPath } from "./Memory.js";
 
 export class Allocator {
-	constructor(data: Memory, stream: CustomEmitter<EditorEvent>) {
+	constructor(data: Memory, emitter: CustomEmitter<EditorEvent>) {
 		this.#data = data;
-		this.#emitter = stream;
+		this.#emitter = emitter;
 	}
 
 	getArray(id: number) {
@@ -21,7 +21,7 @@ export class Allocator {
 	}
 
 	createVector(): VectorEditor {
-		this.#emitter.emit(new CreateArrayEvent(length).applyTo(this.#data));
+		this.#emitter.emit(new CreateArrayEvent(0).applyTo(this.#data));
 		return new VectorEditor(this.#data, this.#data.arrays.length - 1, this.#emitter);
 	}
 
@@ -32,19 +32,19 @@ export class Allocator {
 export type ArrayEditor = readonly AddressEditor[];
 
 export class VectorEditor {
-	constructor(memory: Memory, id: number, stream: CustomEmitter<EditorEvent>) {
+	constructor(memory: Memory, id: number, emitter: CustomEmitter<EditorEvent>) {
 		this.#memory = memory;
 		this.#id = id;
-		this.#stream = stream;
+		this.#emitter = emitter;
 	}
 
 	get(index: number) {
-		return new AddressEditor(this.#memory, new MemoryPath(this.#id, index), this.#stream);
+		return new AddressEditor(this.#memory, new MemoryPath(this.#id, index), this.#emitter);
 	}
 
 	push(value: number) {
 		const index = this.#memory.arrays[this.#id]!.length;
-		this.#stream.emit(new SetEvent(new MemoryPath(this.#id, index), value).applyTo(this.#memory));
+		this.#emitter.emit(new SetEvent(new MemoryPath(this.#id, index), value).applyTo(this.#memory));
 		return this.get(index);
 	}
 
@@ -58,7 +58,7 @@ export class VectorEditor {
 
 	#memory: Memory;
 	#id: number;
-	#stream: CustomEmitter<EditorEvent>;
+	#emitter: CustomEmitter<EditorEvent>;
 }
 
 export class AddressEditor {

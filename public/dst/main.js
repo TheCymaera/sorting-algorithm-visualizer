@@ -29,9 +29,9 @@
     }
 
     class Allocator {
-        constructor(data, stream) {
+        constructor(data, emitter) {
             this.#data = data;
-            this.#emitter = stream;
+            this.#emitter = emitter;
         }
         getArray(id) {
             const out = [];
@@ -45,24 +45,24 @@
             return this.getArray(this.#data.arrays.length - 1);
         }
         createVector() {
-            this.#emitter.emit(new CreateArrayEvent(length).applyTo(this.#data));
+            this.#emitter.emit(new CreateArrayEvent(0).applyTo(this.#data));
             return new VectorEditor(this.#data, this.#data.arrays.length - 1, this.#emitter);
         }
         #data;
         #emitter;
     }
     class VectorEditor {
-        constructor(memory, id, stream) {
+        constructor(memory, id, emitter) {
             this.#memory = memory;
             this.#id = id;
-            this.#stream = stream;
+            this.#emitter = emitter;
         }
         get(index) {
-            return new AddressEditor(this.#memory, new MemoryPath(this.#id, index), this.#stream);
+            return new AddressEditor(this.#memory, new MemoryPath(this.#id, index), this.#emitter);
         }
         push(value) {
             const index = this.#memory.arrays[this.#id].length;
-            this.#stream.emit(new SetEvent(new MemoryPath(this.#id, index), value).applyTo(this.#memory));
+            this.#emitter.emit(new SetEvent(new MemoryPath(this.#id, index), value).applyTo(this.#memory));
             return this.get(index);
         }
         toArray() {
@@ -74,7 +74,7 @@
         }
         #memory;
         #id;
-        #stream;
+        #emitter;
     }
     class AddressEditor {
         constructor(data, path, emitter) {
