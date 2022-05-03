@@ -20,6 +20,8 @@ import * as bogoSort from "./algorithms/others/bogoSort.js";
 import * as bucketSort from "./algorithms/auxillary/bucketSort.js";
 import { CustomEmitter, Emitter } from "open-utilities/async";
 
+await new Promise(resolve=>window.addEventListener("load", resolve));
+
 const main = document.querySelector(".app-main")!;
 const sidebar = document.querySelector(".app-sidebar")!;
 
@@ -28,6 +30,7 @@ const dataSidebar = document.querySelector(".app-data-sidebar")!;
 const presentationSidebar = document.querySelector(".app-presentations-sidebar")!;
 const presentationSidebarSelector = presentationSidebar.querySelector("select")!;
 const presentationSidebarContent = presentationSidebar.querySelector("stack-")!;
+
 
 const app = new class {
 	// for debugging
