@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w"
+  },
+  "dependencies": {
+    "open-utilities": "file:../../../misc/npm-packages/open-utilities"
+  }
+}
