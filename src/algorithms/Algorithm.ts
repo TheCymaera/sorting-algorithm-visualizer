@@ -1,7 +1,7 @@
-import { Emitter } from "open-utilities/async";
-import { ArrayEditor, Allocator } from "../data/MemoryEditor.js";
+import { Emitter } from "open-utilities/core/async/mod.js";
+import { ArrayEditor, MemoryEditor } from "../data/MemoryEditor.js";
 
 export interface SortingAlgorithm {
 	readonly displayName: string;
-	readonly run: (array: ArrayEditor, memory: Allocator, queue: Emitter.Queue<any>) => void;
+	readonly run: (array: ArrayEditor, memory: MemoryEditor, onQueueChangeLength: Emitter<number>) => void;
 }

@@ -1,12 +1,14 @@
-import { Emitter } from "open-utilities/async";
-import { ArrayEditor, Allocator } from "../../data/MemoryEditor.js";
+import { Emitter } from "open-utilities/core/async/mod.js";
+import { ArrayEditor, MemoryEditor } from "../../data/MemoryEditor.js";
 import { run as shuffle } from "./shuffle.js";
 
 export const displayName = "Bogo Sort";
-export async function run(array: ArrayEditor, alloc: Allocator, queue: Emitter.Queue<any>) {
+export async function run(array: ArrayEditor, _: MemoryEditor, onQueueChangeLength: Emitter<number>) {
 	while (!isSorted(array)) {
 		shuffle(array);
-		while (!queue.isEmpty()) await new Promise(resolve=>queue.onQueueShifted.addOnceListener(resolve));
+
+		// wait till there are less than 5 queued events
+		while (await onQueueChangeLength.single() > 5);
 	}
 }
 

@@ -1,26 +1,33 @@
-import { AwaitableIterable, Timer } from "open-utilities/async";
-import { Duration } from "open-utilities/core";
-import { Rect } from "open-utilities/geometry";
-import { AnimationFrameScheduler, Canvas2DRenderer } from "open-utilities/rendering-web";
-import { Color, ShapeStyle } from "open-utilities/ui";
-import { Memory as Memory, MemoryPath } from "../../data/Memory.js";
-import { CompareEvent, EditorEvent, CopyEvent, SwapEvent, GetEvent, SetEvent } from "../../data/MemoryEditor.js";
+import { AwaitableIterable } from "open-utilities/core/async/mod.js";
+import { Timer } from "open-utilities/web/async/mod.js";
+import { Duration } from "open-utilities/core/datetime/mod.js";
+import { Matrix4, Rect, Vector2 } from "open-utilities/core/maths/mod.js";
+import { ShapeStyle } from "open-utilities/core/ui/mod.js";
+import { AnimationFrameScheduler, HTMLCanvas2D } from "open-utilities/web/ui/mod.js";
+import { EditorEvent } from "../../data/Events.js";
+import { Memory, Pointer } from "../../data/Memory.js";
 import { Presentation } from "../Presentation.js";
 import { Scheduler } from "../Scheduler.js";
-import sidebarHTML from "./sidebar.html";
+import configHTML from "./config.html";
+import { } from "helion/OutlinedTextField.js";
 
 
 export class BarChartPresentation implements Presentation {
-	color = Canvas2DRenderer.sampleCSSColor(getComputedStyle(document.body).color);
-	auxillaryColor = Color.fromRGBA(this.color.r, this.color.g, this.color.b, this.color.a * .7);
-	readColor = Canvas2DRenderer.sampleCSSColor(getComputedStyle(document.body).getPropertyValue("--yellow"));
-	writeColor = Canvas2DRenderer.sampleCSSColor(getComputedStyle(document.body).getPropertyValue("--red"));
+	color = ()=>HTMLCanvas2D.sampleCSSColor(getComputedStyle(this.element).color);
+	auxillaryColor = ()=>{
+		const out = this.color();
+		out.a *= .7;
+		return out;
+	};
+	readColor = ()=>HTMLCanvas2D.sampleCSSColor(getComputedStyle(this.element).getPropertyValue("--helion-yellow"));
+	writeColor = ()=>HTMLCanvas2D.sampleCSSColor(getComputedStyle(this.element).getPropertyValue("--helion-red"));
+	readAndWriteColor = ()=>HTMLCanvas2D.sampleCSSColor(getComputedStyle(this.element).getPropertyValue("--helion-green"));
 
 	readonly displayName = "Bar Chart";
-	readonly element = document.createElement("canvas")!;
-	readonly sidebarElement = document.createElement("div")!;
+	readonly element = document.createElement("canvas");
+	readonly configElement = document.createElement("div");
 
-	readonly #renderer = Canvas2DRenderer.fromCanvas(this.element);
+	readonly #renderer = HTMLCanvas2D.fromCanvas(this.element);
 	readonly #audioCtx = new AudioContext();
 	readonly #eventDurationInput: HTMLInputElement;
 	readonly #animationScheduler = new Scheduler<()=>any>();
@@ -28,9 +35,11 @@ export class BarChartPresentation implements Presentation {
 	#defaultDurationInMilliseconds = 5;
 
 	constructor() {
+		this.element.style.backgroundColor = "transparent";
 		this.element.style.imageRendering = "pixelated";
-		this.sidebarElement.innerHTML = sidebarHTML;
-		this.#eventDurationInput = this.sidebarElement.querySelector("input")!;
+		
+		this.configElement.innerHTML = configHTML;
+		this.#eventDurationInput = this.configElement.querySelector("input")!;
 		this.#eventDurationInput.valueAsNumber = this.#defaultDurationInMilliseconds;
 		this.#eventDurationInput.placeholder = this.#defaultDurationInMilliseconds.toString();
 
@@ -48,23 +57,23 @@ export class BarChartPresentation implements Presentation {
 	async present(data: Memory, changes: AwaitableIterable<[Memory, EditorEvent]>) {
 		this.#animationScheduler.unscheduleAll();
 
-		this.#drawBars(data);
+		this.#drawBars(data, [], []);
 
 		this.#audioCtx.resume();
 		const time = new Duration({ seconds: this.#audioCtx.currentTime });
-		for await (const [data, change] of changes) {
+		for await (const [data, event] of changes) {
 			const eventDuration = this.#eventDuration();
 
 			this.#animationScheduler.schedule(time.seconds, ()=>{
 				// the sound is very piercing for event durations < 10 milliseconds,
 				// so I'm scheduling it with the animation in order to throttle it.
-				this.#scheduleEventSounds(this.#audioCtx.currentTime, data, change);
-				this.#drawEventBars(data, change);
+				this.#scheduleEventSounds(this.#audioCtx.currentTime, data, event);
+				this.#drawBars(data, event.reads(), event.writes());
 			});
 
 			time.milliseconds += eventDuration.milliseconds;
 
-			this.#animationScheduler.schedule(time.seconds, ()=>this.#drawBars(data));
+			this.#animationScheduler.schedule(time.seconds, ()=>this.#drawBars(data, [], []));
 
 			// prevent more than 5 events from being scheduled at once.
 			// we need to do this to support bogo-sort.
@@ -72,31 +81,20 @@ export class BarChartPresentation implements Presentation {
 		}
 	}
 
-	#drawEventBars(data: Memory, event: EditorEvent) {
-		if (event instanceof GetEvent) this.#drawBars(data, new Map<string, Color>().set(event.path.toString(), this.readColor));
-		if (event instanceof SetEvent) this.#drawBars(data, new Map<string, Color>().set(event.path.toString(), this.writeColor));
-		if (event instanceof CompareEvent) this.#drawBars(data, new Map<string, Color>().set(event.lhs.toString(), this.readColor).set(event.rhs.toString(), this.readColor));
-
-		if (event instanceof SwapEvent) this.#drawBars(data, new Map<string, Color>().set(event.lhs.toString(), this.writeColor).set(event.rhs.toString(), this.writeColor));
-		if (event instanceof CopyEvent) this.#drawBars(data, new Map<string, Color>().set(event.lhs.toString(), this.writeColor).set(event.rhs.toString(), this.readColor));
-	}
-
-	#drawBars(memory: Memory, colors: Map<string, Color> = new Map) {
+	#drawBars(memory: Memory, reads: Pointer[], writes: Pointer[]) {
+		const height = Math.max(0, ...memory.arrays.map(i=>Math.max(0, ...i)));
 		const width = Math.max(...memory.arrays.map(i=>i.length));
 
-		const arrayHeight = memory.arrays[0]!.length;
-		const totalHeight = (memory.arrays.length) * arrayHeight;
+		const totalHeight = (memory.arrays.length) * height;
 
 		const viewport = Rect.fromCoordinates(0, 0, width, totalHeight);
-		this.#renderer.setViewportRect(viewport);
-
-		this.element.width = viewport.width;
-		this.element.height = viewport.height;
+		this.#renderer.setTransform(Matrix4.ortho(viewport));
+		this.#renderer.setBitmapDimensions(new Vector2(viewport.width, viewport.height));
 
 		this.#renderer.clear();
 
 		for (let p = memory.arrays.length - 1; p >= 0; p--) {
-			const y = (memory.arrays.length - 1 - p) * arrayHeight;
+			const y = (memory.arrays.length - 1 - p) * height;
 			const array = memory.arrays[p]!;
 
 			for (let i = 0; i < array.length; i++) {
@@ -104,29 +102,26 @@ export class BarChartPresentation implements Presentation {
 				const width = 1;
 				const height = array[i]!;
 
-				const color = colors.get(new MemoryPath(p, i).toString()) ?? (p === 0 ? this.color : this.auxillaryColor);
+				const pointer = new Pointer(p, i);
+				const isRead = reads.some((other)=>pointer.equals(other));
+				const isWrite = writes.some((other)=>pointer.equals(other));
 
-				this.#renderer.drawRect(Rect.fromDimensions(x, y, width, height), new ShapeStyle({fillColor: color}));
+				let color = (p === 0 ? this.color() : this.auxillaryColor());
+				if (isRead) color = this.readColor();
+				if (isWrite) color = this.writeColor();
+				if (isRead && isWrite) color = this.readAndWriteColor();
+
+				this.#renderer.drawRect(Rect.fromDimensions(x, y, width, height), new ShapeStyle({fill: color}));
 			}
 		}
 	}
 
-
-	#scheduleEventSounds(time: number, data: Memory, event: EditorEvent) {
+	#scheduleEventSounds(time: number, memory: Memory, event: EditorEvent) {
 		const minNumber = 0;
-		const maxNumber = Math.max(...data.arrays.map(i=>Math.max(...i))) || 1;
+		const maxNumber = Math.max(...memory.arrays.map(i=>Math.max(...i))) || 1;
 
-		if (event instanceof SwapEvent || event instanceof CopyEvent || event instanceof CompareEvent) {
-			this.#scheduleSound(time, data.get(event.lhs)!, minNumber, maxNumber, "triangle");
-			this.#scheduleSound(time, data.get(event.rhs)!, minNumber, maxNumber, "triangle");
-		}
-
-		if (event instanceof GetEvent) {
-			this.#scheduleSound(time, data.get(event.path)!, minNumber, maxNumber, "triangle");
-		}
-
-		if (event instanceof SetEvent) {
-			this.#scheduleSound(time, event.value, minNumber, maxNumber, "triangle");
+		for (const pointer of [...event.reads(), ...event.writes()]) {
+			this.#scheduleSound(time, memory.read(pointer)!, minNumber, maxNumber, "triangle");
 		}
 	}
 

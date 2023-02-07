@@ -1,4 +1,4 @@
-import { ArrayEditor, Allocator } from "../../data/MemoryEditor.js";
+import { ArrayEditor, MemoryEditor } from "../../data/MemoryEditor.js";
 
 export const displayName = "Heap Sort";
 export function run(array: ArrayEditor) {

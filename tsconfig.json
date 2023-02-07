@@ -6,7 +6,7 @@
 		"module": "ESNext",
 		"target": "ESNext",
 
-		"moduleResolution": "node",
+		"moduleResolution": "nodenext",
 		
 		"strictNullChecks": true,
 		"noImplicitThis": true,
@@ -15,8 +15,8 @@
 		"alwaysStrict": true,
 
 		"preserveConstEnums": true,
-		"sourceMap": true,
-		"declaration": true,
+		"isolatedModules": true,
+		"importsNotUsedAsValues": "preserve",
 
 		"skipDefaultLibCheck": true,
 

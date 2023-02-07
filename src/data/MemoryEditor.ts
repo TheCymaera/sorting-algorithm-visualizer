@@ -1,35 +1,37 @@
-import { CustomEmitter } from "open-utilities/async";
-import { Memory, MemoryPath } from "./Memory.js";
+import { CustomEmitter } from "open-utilities/core/async/mod.js";
+import { CreateArrayEvent, EditorEvent, ReadEvent, WriteEvent, SwapEvent } from "./Events.js";
+import { Memory, Pointer } from "./Memory.js";
 
-export class Allocator {
-	constructor(data: Memory, emitter: CustomEmitter<EditorEvent>) {
-		this.#data = data;
-		this.#emitter = emitter;
+export class MemoryEditor {
+	readonly emitter: CustomEmitter<EditorEvent>;
+
+	constructor(memory: Memory, emitter = new CustomEmitter<EditorEvent>) {
+		this.#memory = memory;
+		this.emitter = emitter;
 	}
 
 	getArray(id: number) {
-		const out: AddressEditor[] = [];
-		for (let i = 0; i < this.#data.arrays[id]!.length; i++) {
-			out.push(new AddressEditor(this.#data, new MemoryPath(id, i), this.#emitter));
+		const out: PointerEditor[] = [];
+		for (let i = 0; i < this.#memory.arrays[id]!.length; i++) {
+			out.push(new PointerEditor(this.#memory, new Pointer(id, i), this.emitter));
 		}
 		return out as ArrayEditor;
 	}
 
 	createArray(length: number): ArrayEditor {
-		this.#emitter.emit(new CreateArrayEvent(length).applyTo(this.#data));
-		return this.getArray(this.#data.arrays.length - 1);
+		this.emitter.emit(new CreateArrayEvent(length).applyTo(this.#memory));
+		return this.getArray(this.#memory.arrays.length - 1);
 	}
 
 	createVector(): VectorEditor {
-		this.#emitter.emit(new CreateArrayEvent(0).applyTo(this.#data));
-		return new VectorEditor(this.#data, this.#data.arrays.length - 1, this.#emitter);
+		this.emitter.emit(new CreateArrayEvent(0).applyTo(this.#memory));
+		return new VectorEditor(this.#memory, this.#memory.arrays.length - 1, this.emitter);
 	}
 
-	readonly #data: Memory;
-	readonly #emitter: CustomEmitter<EditorEvent>;
+	readonly #memory: Memory;
 }
 
-export type ArrayEditor = readonly AddressEditor[];
+export type ArrayEditor = readonly PointerEditor[];
 
 export class VectorEditor {
 	constructor(memory: Memory, id: number, emitter: CustomEmitter<EditorEvent>) {
@@ -39,17 +41,17 @@ export class VectorEditor {
 	}
 
 	get(index: number) {
-		return new AddressEditor(this.#memory, new MemoryPath(this.#id, index), this.#emitter);
+		return new PointerEditor(this.#memory, new Pointer(this.#id, index), this.#emitter);
 	}
 
 	push(value: number) {
 		const index = this.#memory.arrays[this.#id]!.length;
-		this.#emitter.emit(new SetEvent(new MemoryPath(this.#id, index), value).applyTo(this.#memory));
+		this.#emitter.emit(new WriteEvent(new Pointer(this.#id, index), value).applyTo(this.#memory));
 		return this.get(index);
 	}
 
 	toArray() {
-		const out: AddressEditor[] = [];
+		const out: PointerEditor[] = [];
 		for (let i = 0; i < this.#memory.arrays[this.#id]!.length; i++) {
 			out.push(this.get(i));
 		}
@@ -61,111 +63,58 @@ export class VectorEditor {
 	#emitter: CustomEmitter<EditorEvent>;
 }
 
-export class AddressEditor {
-	constructor(data: Memory, path: MemoryPath, emitter: CustomEmitter<EditorEvent>) {
-		this.#data = data;
-		this.#path = path;
+export class PointerEditor {
+	constructor(memory: Memory, pointer: Pointer, emitter: CustomEmitter<EditorEvent>) {
+		this.#memory = memory;
+		this.#pointer = pointer;
 		this.#emitter = emitter;
 	}
 
 	read() {
-		this.#emitter.emit(new GetEvent(this.#path).applyTo(this.#data));
-		return this.#data.get(this.#path);
+		this.#emitter.emit(new ReadEvent(this.#pointer).applyTo(this.#memory));
+		return this.#memory.read(this.#pointer);
 	}
 
-	write(value: number) {
-		this.#emitter.emit(new SetEvent(this.#path, value).applyTo(this.#data));
+	write(value: number|PointerEditor) {
+		const pointer = value instanceof PointerEditor ? value.#pointer : value;
+		this.#emitter.emit(new WriteEvent(this.#pointer, pointer).applyTo(this.#memory));
 	}
 
-	copy(other: AddressEditor) {
-		this.#emitter.emit(new CopyEvent(this.#path, other.#path).applyTo(this.#data));
+	add(value: number|PointerEditor) {
+		const pointer = value instanceof PointerEditor ? value.#pointer : value;
+		this.#emitter.emit(new WriteEvent(this.#pointer, pointer, (a,b)=> a + b).applyTo(this.#memory));
 	}
 
-	swap(other: AddressEditor) {
-		this.#emitter.emit(new SwapEvent(this.#path, other.#path).applyTo(this.#data));
+	subtract(value: number|Pointer) {
+		const pointer = value instanceof PointerEditor ? value.#pointer : value;
+		this.#emitter.emit(new WriteEvent(this.#pointer, pointer, (a,b)=> a - b).applyTo(this.#memory));
+	}
+
+	swap(other: PointerEditor) {
+		this.#emitter.emit(new SwapEvent(this.#pointer, other.#pointer).applyTo(this.#memory));
 	}
 	
-	lessThan(other: AddressEditor) {
-		this.#emitter.emit(new CompareEvent(this.#path, other.#path).applyTo(this.#data));
-		return this.#data.get(this.#path) < this.#data.get(other.#path);
+	lessThan(other: PointerEditor) {
+		this.#emitter.emit(new ReadEvent(this.#pointer, other.#pointer).applyTo(this.#memory));
+		return this.#memory.read(this.#pointer) < this.#memory.read(other.#pointer);
 	}
 
-	greaterThan(other: AddressEditor) {
-		this.#emitter.emit(new CompareEvent(this.#path, other.#path).applyTo(this.#data));
-		return this.#data.get(this.#path) > this.#data.get(other.#path);
+	greaterThan(other: PointerEditor) {
+		this.#emitter.emit(new ReadEvent(this.#pointer, other.#pointer).applyTo(this.#memory));
+		return this.#memory.read(this.#pointer) > this.#memory.read(other.#pointer);
 	}
 
-	lessThanOrEqualTo(other: AddressEditor) {
-		this.#emitter.emit(new CompareEvent(this.#path, other.#path).applyTo(this.#data));
-		return this.#data.get(this.#path)! <= other.#data.get(other.#path)!;
+	lessThanOrEqualTo(other: PointerEditor) {
+		this.#emitter.emit(new ReadEvent(this.#pointer, other.#pointer).applyTo(this.#memory));
+		return this.#memory.read(this.#pointer)! <= other.#memory.read(other.#pointer)!;
 	}
 
-	greaterThanOrEqualTo(other: AddressEditor) {
-		this.#emitter.emit(new CompareEvent(this.#path, other.#path).applyTo(this.#data));
-		return this.#data.get(this.#path)! >= other.#data.get(other.#path)!;
+	greaterThanOrEqualTo(other: PointerEditor) {
+		this.#emitter.emit(new ReadEvent(this.#pointer, other.#pointer).applyTo(this.#memory));
+		return this.#memory.read(this.#pointer)! >= other.#memory.read(other.#pointer)!;
 	}
 
-	readonly #data: Memory;
-	readonly #path: MemoryPath;
+	readonly #memory: Memory;
+	readonly #pointer: Pointer;
 	readonly #emitter: CustomEmitter<EditorEvent>;
 }
-
-export class CreateArrayEvent {
-	constructor(readonly length: number) { }
-
-	applyTo(memory: Memory) {
-		memory.arrays.push(new Array(this.length).fill(0));
-		return this;
-	}
-}
-
-export class GetEvent {
-	constructor(readonly path: MemoryPath) { }
-
-	applyTo(_memory: Memory) {
-		// do nothing
-		return this;
-	}
-}
-
-export class SetEvent {
-	constructor(readonly path: MemoryPath, readonly value: number) { }
-
-	applyTo(memory: Memory) {
-		memory.write(this.path, this.value);
-		return this;
-	}
-}
-
-
-export class CompareEvent {
-	constructor(readonly lhs: MemoryPath, readonly rhs: MemoryPath) {}
-
-	applyTo(_memory: Memory) {
-		// do nothing
-		return this;
-	}
-}
-
-export class CopyEvent {
-	constructor(readonly lhs: MemoryPath, readonly rhs: MemoryPath) {}
-
-	applyTo(data: Memory) {
-		data.write(this.lhs, data.get(this.rhs));
-		return this;
-	}
-}
-
-export class SwapEvent {
-	constructor(readonly lhs: MemoryPath, readonly rhs: MemoryPath) {}
-
-	applyTo(memory: Memory) {
-		const lhs = memory.get(this.lhs);
-		const rhs = memory.get(this.rhs);
-		memory.write(this.lhs, rhs);
-		memory.write(this.rhs, lhs);
-		return this;
-	}
-}
-
-export type EditorEvent = CreateArrayEvent | GetEvent | SetEvent | CompareEvent | CopyEvent | SwapEvent;

@@ -1,9 +1,9 @@
-import { ArrayEditor, Allocator, VectorEditor } from "../../data/MemoryEditor.js";
-import { run as sort } from "../in-place/quickSort.js";
+import { ArrayEditor, MemoryEditor, VectorEditor } from "../../data/MemoryEditor.js";
+import { run as sort } from "../inPlace/quickSort.js";
 
 export const displayName = "Bucket Sort (k = 5)";
 export const k = 5;
-export function run(array: ArrayEditor, alloc: Allocator) {
+export function run(array: ArrayEditor, alloc: MemoryEditor) {
 	const buckets: VectorEditor[] = [];
 	for (let i = 0; i < k; i++) buckets.push(alloc.createVector());
 
@@ -21,7 +21,7 @@ export function run(array: ArrayEditor, alloc: Allocator) {
 	let n = 0;
 	for (const bucket of buckets) {
 		for (const item of bucket.toArray()) {
-			array[n]!.copy(item);
+			array[n]!.write(item);
 			n += 1;
 		}
 	}

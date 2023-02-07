@@ -9,19 +9,23 @@ export class Memory {
 		return new Memory(this.arrays);
 	}
 
-	get(path: MemoryPath) {
-		return this.arrays[path.id]![path.index]!;
+	read(pointer: Pointer) {
+		return this.arrays[pointer.array]![pointer.index]!;
 	}
 
-	write(path: MemoryPath, value: number) {
-		this.arrays[path.id]![path.index] = value;
+	write(pointer: Pointer, value: number) {
+		this.arrays[pointer.array]![pointer.index] = value;
 	}
 }
 
-export class MemoryPath {
-	constructor(public id: number, public index: number) {}
+export class Pointer {
+	constructor(public array: number, public index: number) {}
+
+	equals(other: Pointer) {
+		return this.array === other.array && this.index === other.index;
+	}
 
 	toString() {
-		return `${this.id}:${this.index}`;
+		return `${this.array}:${this.index}`;
 	}
 }

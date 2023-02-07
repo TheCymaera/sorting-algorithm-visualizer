@@ -1,34 +1,29 @@
-const importGlobal = (name)=>import(process.execPath + "/../../lib/node_modules/" + "/" + name).catch(()=>import(name));
+import typescript from "@rollup/plugin-typescript";
+import node from "@rollup/plugin-node-resolve";
+import terser from "@rollup/plugin-terser";
+import scss from 'rollup-plugin-scss';
+import { string } from "rollup-plugin-string";
 
-export default (async ()=>{	
-	const { default: sourcemaps } = await importGlobal("rollup-plugin-sourcemaps");
-	const { default: typescript } = await importGlobal("@rollup/plugin-typescript");
-	const { default: node } = await importGlobal("@rollup/plugin-node-resolve");
-	const { default: scss } = await importGlobal("rollup-plugin-scss");
-	const { terser } = await importGlobal("rollup-plugin-terser");
-	const { string } = await importGlobal("rollup-plugin-string");
+const dst = "./public/dst";
 
-	return [
-		{
-			input: 'src/main.ts',
-			output: {
-				sourcemap: true,
-				format: "es",
-				file: "./public/dst/main.js"
-			},
-			plugins: [
-				node(),
-				typescript(),
-				sourcemaps(),
-				// terser(),
-				scss({
-					output: "./public/dst/main.css",
-					outputStyle: "compressed",
-				}),
-				string({
-					include: "**/*.html",
-				})
-			]
-		}
-	]
-})();
+export default [
+	{
+		input: 'src/main.ts',
+		output: {
+			sourcemap: true,
+			format: "es",
+			file: dst + "/main.js",
+			assetFileNames: '[name][extname]'
+		},
+		plugins: [
+			node(),
+			string({ include: "**/*.html" }),
+			typescript(),
+			scss({
+				outputStyle: "compressed",
+				fileName: "main.css"
+			}),
+			terser(),
+		]
+	}
+];
