@@ -1,17 +1,4 @@
-html, body {
-	position: absolute;
-	height: 100%;
-	width: 100%;
-	margin: 0;
-}
-
 .App {
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-
 	display: grid;
 	grid-template: "m s n" 1fr / 1fr 300px min-content;
 

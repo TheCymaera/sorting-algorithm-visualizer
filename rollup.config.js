@@ -10,7 +10,6 @@ export default [
 	{
 		input: 'src/main.ts',
 		output: {
-			sourcemap: true,
 			format: "es",
 			file: dst + "/main.js",
 			assetFileNames: '[name][extname]'
