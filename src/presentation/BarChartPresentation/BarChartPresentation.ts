@@ -8,7 +8,7 @@ import { EditorEvent } from "../../data/Events.js";
 import { Memory, Pointer } from "../../data/Memory.js";
 import { Presentation } from "../Presentation.js";
 import { Scheduler } from "../Scheduler.js";
-import configHTML from "./config.html";
+import configHTML from "./config.html?raw";
 import { } from "helion/OutlinedTextField.js";
 
 

@@ -7,11 +7,11 @@ import {} from "helion/Stack.js";
 import {} from "helion/NavRail.js";
 import {} from "helion/CircleButton.js";
 
-import "./ui.scss";
+import "./ui.css";
 
 import { SortingAlgorithm } from "../algorithms/Algorithm.js";
-import uiHtml from "./ui.html";
-import infoHtml from "./info.html";
+import uiHtml from "./ui.html?raw";
+import infoHtml from "./info.html?raw";
 import { fa5_brands_github, fa5_solid_brush, fa5_solid_code, fa5_solid_database, fa5_solid_home, fa5_solid_info, fa5_solid_times } from "fontawesome-svgs";
 import { Presentation } from "../presentation/Presentation.js";
 

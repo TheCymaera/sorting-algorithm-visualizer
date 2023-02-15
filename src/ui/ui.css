@@ -1,12 +1,11 @@
+svg {
+	fill: currentColor;
+	height: 1em;
+}
+
 .App {
 	display: grid;
 	grid-template: "m s n" 1fr / 1fr 300px min-content;
-
-	svg {
-		fill: currentColor;
-		height: 1em;
-		width: 1.2em;
-	}
 }
 
 @media (max-aspect-ratio: 1/1) {
@@ -26,12 +25,10 @@
 	overflow: auto;
 }
 
-.App_Algorithms,
-.App_Data {
-	button {
-		text-align: center !important;
-		padding: .5em;
-	}
+.App_Algorithms button,
+.App_Data button {
+	text-align: center !important;
+	padding: .5em;
 }
 
 .App_Presentation_Selector {
