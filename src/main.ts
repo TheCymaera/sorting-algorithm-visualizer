@@ -1,6 +1,6 @@
 import { MemoryEditor } from "./data/MemoryEditor.js";
 import { Memory } from "./data/Memory.js";
-import {} from "./ui/ui.js";
+import "./ui/ui.js";
 
 import { SortingAlgorithm } from "./algorithms/Algorithm.js";
 import { Disposable } from "open-utilities/core/memory/mod.js";
@@ -18,6 +18,7 @@ import * as bottomUpMergeSort from "./algorithms/auxillary/bottomUpMergeSort.js"
 import * as heapSort from "./algorithms/inPlace/heapSort.js";
 import * as bogoSort from "./algorithms/others/bogoSort.js";
 import * as bucketSort from "./algorithms/auxillary/bucketSort.js";
+import * as radixSort from "./algorithms/auxillary/radixSort.js";
 import * as ui from "./ui/ui.js";
 import { CustomEmitter } from "open-utilities/core/async/mod.js";
 import { EditorEvent } from "./data/Events.js";
@@ -95,6 +96,7 @@ const app = new class {
 		topDownMergeSort, 
 		bottomUpMergeSort, 
 		bucketSort,
+		radixSort,
 		// misc
 		bogoSort,
 	];

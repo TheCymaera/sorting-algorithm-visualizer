@@ -34,6 +34,8 @@ export class MemoryEditor {
 export type ArrayEditor = readonly PointerEditor[];
 
 export class VectorEditor {
+	length = 0;
+
 	constructor(memory: Memory, id: number, emitter: CustomEmitter<EditorEvent>) {
 		this.#memory = memory;
 		this.#id = id;
@@ -45,22 +47,27 @@ export class VectorEditor {
 	}
 
 	push(value: number) {
-		const index = this.#memory.arrays[this.#id]!.length;
+		const index = this.length;
 		this.#emitter.emit(new WriteEvent(new Pointer(this.#id, index), value).applyTo(this.#memory));
+		this.length++;
 		return this.get(index);
+	}
+
+	clear() {
+		this.length = 0;
 	}
 
 	toArray() {
 		const out: PointerEditor[] = [];
-		for (let i = 0; i < this.#memory.arrays[this.#id]!.length; i++) {
+		for (let i = 0; i < this.length; i++) {
 			out.push(this.get(i));
 		}
 		return out;
 	}
 
-	#memory: Memory;
-	#id: number;
-	#emitter: CustomEmitter<EditorEvent>;
+	readonly #memory: Memory;
+	readonly #id: number;
+	readonly #emitter: CustomEmitter<EditorEvent>;
 }
 
 export class PointerEditor {
