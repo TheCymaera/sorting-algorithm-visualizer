@@ -262,7 +262,7 @@ export function App() {
 			<button 
 				class="FloatingCircleButton InkWellButton" 
 				title="Close" 
-				style="position: absolute; right: .5em; top: .5em;" 
+				style="position: absolute; right: .5rem; top: .5rem;" 
 				innerHTML={fa5_solid_times} 
 				onClick={()=>setDialogOpened(false)} 
 			/>
