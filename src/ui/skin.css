@@ -46,7 +46,8 @@ a {
 }
 
 small {
-	font-size: 0.8rem;
+	font-size: 0.8em;
+	opacity: .8;
 }
 
 input {
