@@ -1,4 +1,3 @@
-import "./reset.css";
 import "./layout.css";
 import "./skin.css";
 
