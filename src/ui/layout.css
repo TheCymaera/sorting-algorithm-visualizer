@@ -1,0 +1,130 @@
+.App {
+	display: grid;
+	grid-template: "m s n" 1fr / 1fr 300px min-content;
+}
+
+@media (max-aspect-ratio: 1/1) {
+	.App {
+		grid-template: 
+		"m n" 1fr 
+		"s n" 1fr / 1fr min-content;
+	}
+}
+
+.App_Presentation_Element {
+	grid-area: m;
+}
+
+.App_Sidebar {
+	grid-area: s;
+	overflow: auto;
+}
+
+.App_NavRail {
+	grid-area: n;
+
+	display: flex;
+	flex-direction: column;
+}
+
+.container {
+	background-color: var(--surfaceContainer);
+	color: var(--onSurfaceContainer);
+}
+
+.shadow {
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.InkWellButton {
+	display: block;
+	padding: 0;
+	transition: color .2s ease;
+	cursor: pointer;
+	color: inherit;
+
+	position: relative;
+}
+
+.InkWellButton::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	background-color: currentColor;
+	opacity: 0;
+	transition: opacity .2s ease;
+}
+
+.InkWellButton:hover::before {
+	opacity: .1;
+}
+
+.InkWellButton:active::before {
+	opacity: .2;
+}
+
+.InkWellButton[data-selected] {
+	color: var(--primary);
+}
+
+.CircleButton {
+	border-radius: 9999px;
+
+	--width: 60px;
+	width: var(--width);
+	height: var(--width);
+
+	display: grid;
+	place-items: center;
+}
+
+.FloatingCircleButton {
+	--width: 50px;
+	width: var(--width);
+	height: var(--width);
+
+	display: grid;
+	place-items: center;
+	border-radius: 9999px;
+	font-size: 1.2rem;
+	
+	background-color: var(--onSurface);
+	color: var(--surface);
+}
+
+.PanelButton {
+	display: grid;
+	padding: .6rem;
+
+	width: 100%;
+}
+
+.App_Presentation {
+	position: relative;
+}
+
+.App_Presentation > * {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+}
+
+.App_InfoDialog {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+
+	opacity: 0;
+	transition: opacity .2s ease;
+	will-change: opacity;
+	pointer-events: none;
+}
+
+.App_InfoDialog[data-opened] {
+	opacity: 1;
+	pointer-events: auto;
+}

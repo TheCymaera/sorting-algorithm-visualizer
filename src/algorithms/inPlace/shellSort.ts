@@ -1,7 +1,7 @@
-import { ArrayEditor } from "../../data/MemoryEditor.js";
+import { SortingContext } from "../Algorithm.js";
 
 export const displayName = "Shell Sort";
-export function run(array: ArrayEditor) {
+export function shellSort({ array }: SortingContext) {
 	let gap = array.length;
 	while (gap > 1) {
 		gap = Math.floor(gap / 2);

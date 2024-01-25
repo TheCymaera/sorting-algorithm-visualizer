@@ -1,0 +1,57 @@
+:root {
+	--surface: #eee;
+	--onSurface: #444;
+
+	--surfaceContainer: #fff;
+	--onSurfaceContainer: #444;
+
+	--primary: #0cc;
+
+	--divider: #ccc;
+}
+
+html, body {
+	background-color: var(--surface);
+	color: var(--onSurface);
+
+	font-family: Tahoma, sans-serif;
+
+	line-height: 1.5;
+	font-size: 16px;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+hr {
+	margin: 0;
+	border: none;
+	border-top: 1px solid var(--divider);
+}
+
+button, input {
+	font-family: inherit;
+	font-size: inherit;
+}
+
+button, a {
+	background-color: transparent;
+	border: none;
+	cursor: pointer;
+}
+
+a {
+	color: var(--primary);
+}
+
+small {
+	font-size: 0.8rem;
+}
+
+input {
+	border: 1px solid var(--divider);
+	border-radius: .5rem;
+	padding: .8rem;
+	outline-color: var(--primary);
+}

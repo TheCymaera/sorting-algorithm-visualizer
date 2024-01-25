@@ -1,7 +1,7 @@
-import { ArrayEditor, MemoryEditor } from "../../data/MemoryEditor.js";
+import { ArrayEditor } from "../../data/MemoryEditor.js";
+import { SortingContext } from "../Algorithm.js";
 
-export const displayName = "Heap Sort";
-export function run(array: ArrayEditor) {
+export function heapSort({ array }: SortingContext) {
 	for (let i = array.length - 1; i >= 0; i--) {
 		heapify(array, i);
 	}

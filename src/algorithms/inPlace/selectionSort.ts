@@ -1,7 +1,7 @@
-import { ArrayEditor } from "../../data/MemoryEditor.js";
+import { SortingContext } from "../Algorithm.js";
 
 export const displayName = "Selection Sort";
-export function run(array: ArrayEditor) {
+export function selectionSort({ array }: SortingContext) {
 	for (let current = 0; current < array.length; current++) {
 		let max = current;
 		for (let i = current + 1; i < array.length; i++) {

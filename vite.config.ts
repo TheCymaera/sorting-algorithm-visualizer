@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite';
+import solidPlugin from 'vite-plugin-solid';
 
 export default defineConfig({
 	base: "./",
@@ -7,4 +8,7 @@ export default defineConfig({
 			polyfill: false,
 		}
 	},
+	plugins: [
+		solidPlugin(),
+	]
 });

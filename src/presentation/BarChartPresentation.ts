@@ -2,15 +2,21 @@ import { AwaitableIterable } from "open-utilities/core/async/mod.js";
 import { Timer } from "open-utilities/web/async/mod.js";
 import { Duration } from "open-utilities/core/datetime/mod.js";
 import { Matrix4, Rect, Vector2 } from "open-utilities/core/maths/mod.js";
-import { ShapeStyle } from "open-utilities/core/ui/mod.js";
+import { Color, ShapeStyle } from "open-utilities/core/ui/mod.js";
 import { AnimationFrameScheduler, HTMLCanvas2D } from "open-utilities/web/ui/mod.js";
-import { EditorEvent } from "../../data/Events.js";
-import { Memory, Pointer } from "../../data/Memory.js";
-import { Presentation } from "../Presentation.js";
-import { Scheduler } from "../Scheduler.js";
-import configHTML from "./config.html?raw";
-import { } from "helion/OutlinedTextField.js";
+import { EditorEvent, ReadEvent, SwapEvent, WriteEvent } from "../data/Events.js";
+import { Memory, Pointer } from "../data/Memory.js";
+import { Presentation } from "./Presentation.js";
+import { Scheduler } from "./Scheduler.js";
 
+
+function hex(hex: string) {
+	const r = parseInt(hex.slice(1, 3), 16);
+	const g = parseInt(hex.slice(3, 5), 16);
+	const b = parseInt(hex.slice(5, 7), 16);
+
+	return Color.fromRGBA(r, g, b, 255);
+}
 
 export class BarChartPresentation implements Presentation {
 	color = ()=>HTMLCanvas2D.sampleCSSColor(getComputedStyle(this.element).color);
@@ -19,30 +25,22 @@ export class BarChartPresentation implements Presentation {
 		out.a *= .7;
 		return out;
 	};
-	readColor = ()=>HTMLCanvas2D.sampleCSSColor(getComputedStyle(this.element).getPropertyValue("--helion-yellow"));
-	writeColor = ()=>HTMLCanvas2D.sampleCSSColor(getComputedStyle(this.element).getPropertyValue("--helion-red"));
-	readAndWriteColor = ()=>HTMLCanvas2D.sampleCSSColor(getComputedStyle(this.element).getPropertyValue("--helion-green"));
+	readColor = ()=>hex("#eab308")
+	writeColor = ()=>hex("#ef4444")
+	readAndWriteColor = ()=>hex("#84cc16")
+	eventDuration = 5
 
 	readonly displayName = "Bar Chart";
 	readonly element = document.createElement("canvas");
-	readonly configElement = document.createElement("div");
 
 	readonly #renderer = HTMLCanvas2D.fromCanvas(this.element);
 	readonly #audioCtx = new AudioContext();
-	readonly #eventDurationInput: HTMLInputElement;
 	readonly #animationScheduler = new Scheduler<()=>any>();
-
-	#defaultDurationInMilliseconds = 5;
 
 	constructor() {
 		this.element.style.backgroundColor = "transparent";
 		this.element.style.imageRendering = "pixelated";
 		
-		this.configElement.innerHTML = configHTML;
-		this.#eventDurationInput = this.configElement.querySelector("input")!;
-		this.#eventDurationInput.valueAsNumber = this.#defaultDurationInMilliseconds;
-		this.#eventDurationInput.placeholder = this.#defaultDurationInMilliseconds.toString();
-
 		AnimationFrameScheduler.periodic(()=>{
 			// only render the latest frame
 			const frames = this.#animationScheduler.next(this.#audioCtx.currentTime);
@@ -51,7 +49,7 @@ export class BarChartPresentation implements Presentation {
 	}
 
 	#eventDuration() {
-		return new Duration({milliseconds: this.#eventDurationInput.valueAsNumber || this.#defaultDurationInMilliseconds });
+		return new Duration({milliseconds: this.eventDuration });
 	}
 
 	async present(data: Memory, changes: AwaitableIterable<[Memory, EditorEvent]>) {
@@ -68,7 +66,7 @@ export class BarChartPresentation implements Presentation {
 				// the sound is very piercing for event durations < 10 milliseconds,
 				// so I'm scheduling it with the animation in order to throttle it.
 				this.#scheduleEventSounds(this.#audioCtx.currentTime, data, event);
-				this.#drawBars(data, event.reads(), event.writes());
+				this.#drawBars(data, this.#getReads(event), this.#getWrites(event));
 			});
 
 			time.milliseconds += eventDuration.milliseconds;
@@ -120,9 +118,21 @@ export class BarChartPresentation implements Presentation {
 		const minNumber = 0;
 		const maxNumber = Math.max(...memory.arrays.map(i=>Math.max(...i))) || 1;
 
-		for (const pointer of [...event.reads(), ...event.writes()]) {
+		for (const pointer of [...this.#getReads(event), ...this.#getWrites(event)]) {
 			this.#scheduleSound(time, memory.read(pointer)!, minNumber, maxNumber, "triangle");
 		}
+	}
+
+	#getReads(event: EditorEvent) {
+		if (event instanceof ReadEvent) return event.pointers;
+		if (event instanceof SwapEvent) return [event.lhs, event.rhs];
+		return [];
+	}
+
+	#getWrites(event: EditorEvent) {
+		if (event instanceof WriteEvent) return [event.pointer];
+		if (event instanceof SwapEvent) return [event.lhs, event.rhs];
+		return [];
 	}
 
 	#scheduleSound(time: number, number: number, min: number, max: number, type: OscillatorType) {

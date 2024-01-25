@@ -1,17 +1,18 @@
 import { ArrayEditor } from "../../data/MemoryEditor.js";
+import { SortingContext } from "../Algorithm.js";
 
 export const displayName = "Quick Sort";
-export function run(array: ArrayEditor) {
-	quickSort(array, 0, array.length - 1);
+export function quickSort({ array }: SortingContext) {
+	withLeftRight(array, 0, array.length - 1);
 }
 
-function quickSort(A: ArrayEditor, left: number, right: number) { 
+function withLeftRight(A: ArrayEditor, left: number, right: number) { 
 	if (left >= right || left < 0) return;
 
 	const p = partition(A, left, right);
 	
-	quickSort(A, left, p - 1);
-	quickSort(A, p + 1, right);
+	withLeftRight(A, left, p - 1);
+	withLeftRight(A, p + 1, right);
 }
 
 function partition(A: ArrayEditor, left: number, right: number) {

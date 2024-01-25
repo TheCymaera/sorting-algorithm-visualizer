@@ -1,11 +1,14 @@
-import { ArrayEditor, MemoryEditor, VectorEditor } from "../../data/MemoryEditor.js";
-import { run as sort } from "../inPlace/quickSort.js";
+import { VectorEditor } from "../../data/MemoryEditor.js";
+import { SortingContext } from "../Algorithm.js";
+import { quickSort } from "../inPlace/quickSort.js";
 
 export const displayName = "Bucket Sort (k = 5)";
 export const k = 5;
-export function run(array: ArrayEditor, alloc: MemoryEditor) {
+export function bucketSort(context: SortingContext) {
+	const { array, memory } = context;
+
 	const buckets: VectorEditor[] = [];
-	for (let i = 0; i < k; i++) buckets.push(alloc.createVector());
+	for (let i = 0; i < k; i++) buckets.push(memory.createVector());
 
 	const max = Math.max(...array.map(i=>i.read()));
 
@@ -16,7 +19,7 @@ export function run(array: ArrayEditor, alloc: MemoryEditor) {
 		buckets[bucketIndex]!.push(value);
 	}
 
-	for (const bucket of buckets) sort(bucket.toArray());
+	for (const bucket of buckets) quickSort(context.withArray(bucket.toArray()));
 
 	let n = 0;
 	for (const bucket of buckets) {

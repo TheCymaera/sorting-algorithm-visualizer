@@ -1,9 +1,9 @@
-import { ArrayEditor, MemoryEditor } from "../../data/MemoryEditor.js";
+import { SortingContext } from "../Algorithm.js";
 import { copyArray, merge } from "./merge.js";
 
 
 export const displayName = "Bottom Up Merge Sort";
-export function run(array: ArrayEditor, memory: MemoryEditor) {
+export function bottomUpMergeSort({ array, memory }: SortingContext) {
 	const auxArray = memory.createArray(array.length);
 
 	let a = array;

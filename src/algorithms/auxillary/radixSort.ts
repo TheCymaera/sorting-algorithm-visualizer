@@ -1,12 +1,13 @@
 import { ArrayEditor, MemoryEditor, VectorEditor } from "../../data/MemoryEditor.js";
+import { SortingContext } from "../Algorithm.js";
 
 const k = 5;
 export const displayName = `Radix Sort (k = ${k})`;
-export function run(array: ArrayEditor, alloc: MemoryEditor) {
+export function radixSort({ array, memory }: SortingContext) {
 
 	// create buckets
 	const buckets: VectorEditor[] = [];
-	for (let i = 0; i < k; i++) buckets.push(alloc.createVector());
+	for (let i = 0; i < k; i++) buckets.push(memory.createVector());
 
 	// find the number of digits in the largest number
 	const max = Math.max(...array.map(i=>i.read()));

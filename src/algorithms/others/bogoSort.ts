@@ -1,14 +1,14 @@
-import { Emitter } from "open-utilities/core/async/mod.js";
-import { ArrayEditor, MemoryEditor } from "../../data/MemoryEditor.js";
-import { run as shuffle } from "./shuffle.js";
+import { ArrayEditor } from "../../data/MemoryEditor.js";
+import { shuffle as shuffle } from "./shuffle.js";
+import { SortingContext } from "../Algorithm.js";
 
 export const displayName = "Bogo Sort";
-export async function run(array: ArrayEditor, _: MemoryEditor, onQueueChangeLength: Emitter<number>) {
-	while (!isSorted(array)) {
-		shuffle(array);
+export async function bogoSort(context: SortingContext) {
+	while (!isSorted(context.array)) {
+		shuffle(context);
 
 		// wait till there are less than 5 queued events
-		while (await onQueueChangeLength.single() > 5);
+		while (await context.onQueueChangeLength.single() > 5);
 	}
 }
 
