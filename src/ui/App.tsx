@@ -1,3 +1,4 @@
+import "./reset.css";
 import "./layout.css";
 import "./skin.css";
 
@@ -40,6 +41,9 @@ class AppData {
 		return new Memory([array]);
 	}
 }
+
+// Safari fix
+document.documentElement.addEventListener("touchstart",()=>undefined);
 
 const algorithms = [
 	// shuffle
