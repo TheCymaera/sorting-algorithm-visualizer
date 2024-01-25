@@ -54,5 +54,12 @@ input {
 	border: 1px solid var(--divider);
 	border-radius: .5rem;
 	padding: .8rem;
+	outline: transparent solid 2px;
+	outline-offset: -2px;
+
+	transition: outline-color .1s ease-in-out;
+}
+
+input:focus {
 	outline-color: var(--primary);
 }
