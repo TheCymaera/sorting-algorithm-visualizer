@@ -20,7 +20,7 @@ function hex(hex: string) {
 
 export class BarChartPresentation implements Presentation {
 	color = ()=>HTMLCanvas2D.sampleCSSColor(getComputedStyle(this.element).color);
-	auxillaryColor = ()=>{
+	auxiliaryColor = ()=>{
 		const out = this.color();
 		out.a *= .7;
 		return out;
@@ -104,7 +104,7 @@ export class BarChartPresentation implements Presentation {
 				const isRead = reads.some((other)=>pointer.equals(other));
 				const isWrite = writes.some((other)=>pointer.equals(other));
 
-				let color = (p === 0 ? this.color() : this.auxillaryColor());
+				let color = (p === 0 ? this.color() : this.auxiliaryColor());
 				if (isRead) color = this.readColor();
 				if (isWrite) color = this.writeColor();
 				if (isRead && isWrite) color = this.readAndWriteColor();

@@ -8,9 +8,6 @@ export function Info() {
 			<li>Green: Read and write operation (swap)</li>
 		</ul>
 
-		<br />
-
-		<br />
 		<h3>See Also:</h3>
 		<ul>
 			<li><a href="https://github.com/TheCymaera/sorting-algorithm-visualizer" target="_blank">Source code on GitHub</a></li>

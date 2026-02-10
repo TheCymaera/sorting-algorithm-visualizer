@@ -8,6 +8,8 @@
 	--primary: #0cc;
 
 	--divider: #ccc;
+
+	--outline-width: 2px;
 }
 
 html, body {
@@ -22,6 +24,13 @@ html, body {
 
 * {
 	box-sizing: border-box;
+	outline-color: transparent;
+}
+
+:where(:focus-visible) {
+	outline: transparent solid var(--outline-width);
+	outline-offset: var(--outline-width);
+	outline-color: var(--primary);
 }
 
 hr {
@@ -54,8 +63,7 @@ input {
 	border: 1px solid var(--divider);
 	border-radius: .5rem;
 	padding: .8rem;
-	outline: transparent solid 2px;
-	outline-offset: -2px;
+	outline-offset: calc(-1 * var(--outline-width));
 
 	transition: outline-color .1s ease-in-out;
 }

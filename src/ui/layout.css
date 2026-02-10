@@ -5,7 +5,7 @@ html, body {
 	margin: 0px;
 
 	overflow: hidden;
-  overscroll-behavior: none;
+	overscroll-behavior: none;
 	-webkit-text-size-adjust: none;
 	-webkit-tap-highlight-color: transparent;
 }
@@ -14,10 +14,8 @@ html, body {
 	display: grid;
 	grid-template: "m s n" 1fr / 1fr 300px min-content;
 	z-index: 0;
-}
 
-@media (max-aspect-ratio: 1/1) {
-	.App {
+	@media (max-aspect-ratio: 1/1) {
 		grid-template: 
 		"m n" 1fr 
 		"s n" 1fr / 1fr min-content;
@@ -59,30 +57,31 @@ html, body {
 	color: inherit;
 
 	position: relative;
-}
+	outline-offset: calc(-1 * var(--outline-width));
 
-.InkWellButton::before {
-	content: "";
-	position: absolute;
-	inset: 0;
-	border-radius: inherit;
-	background-color: currentColor;
-	opacity: 0;
-	transition: opacity .2s ease;
-}
-
-@media (hover: hover) {
-	.InkWellButton:hover::before {
-		opacity: .1;
+	&::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		border-radius: inherit;
+		background-color: currentColor;
+		opacity: 0;
+		transition: opacity .2s ease;
 	}
-}
 
-.InkWellButton:active::before {
-	opacity: .2;
-}
+	@media (hover: hover) {
+		&:hover::before {
+			opacity: .1;
+		}
+	}
 
-.InkWellButton[data-selected] {
-	color: var(--primary);
+	&:active::before {
+		opacity: .2;
+	}
+
+	&[data-selected] {
+		color: var(--primary);
+	}
 }
 
 .CircleButton {
@@ -108,6 +107,8 @@ html, body {
 	
 	background-color: var(--onSurface);
 	color: var(--surface);
+
+	outline-offset: 3px;
 }
 
 .PanelButton {
@@ -119,13 +120,13 @@ html, body {
 
 .App_Presentation {
 	position: relative;
-}
 
-.App_Presentation > * {
-	position: absolute;
-	inset: 0;
-	width: 100%;
-	height: 100%;
+	 > * {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+	}
 }
 
 .App_InfoDialog {
@@ -141,9 +142,9 @@ html, body {
 	pointer-events: none;
 
 	z-index: 2;
-}
 
-.App_InfoDialog[data-opened] {
-	opacity: 1;
-	pointer-events: auto;
+	&[data-opened] {
+		opacity: 1;
+		pointer-events: auto;
+	}
 }
